@@ -325,8 +325,21 @@
         measurementId: "G-V3RX16QW78"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    let db = null;
+
+    function initializeFirebase() {
+        if (!window.firebase) {
+            showError('loginError', 'Firebase 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            return false;
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        db = firebase.database();
+        return true;
+    }
 
     let currentUserId = null;
 
@@ -359,6 +372,8 @@
     }
 
     async function signup() {
+        if (!initializeFirebase()) return;
+
         const userId = document.getElementById('newUserId').value.trim();
         const studentId = document.getElementById('newUserStudentId').value.trim();
         const name = document.getElementById('newUserName').value.trim();
@@ -396,6 +411,8 @@
     }
 
     async function login() {
+        if (!initializeFirebase()) return;
+
         const userId = document.getElementById('userId').value.trim();
 
         if (!userId) {
@@ -432,6 +449,8 @@
     }
 
     async function createPost() {
+        if (!initializeFirebase()) return;
+
         if (!currentUserId) {
             showError('boardError', '로그인이 필요합니다');
             return;
@@ -471,6 +490,8 @@
     }
 
     function loadPosts() {
+        if (!initializeFirebase()) return;
+
         const postsRef = db.ref('posts').orderByChild('createdAt');
         postsRef.limitToLast(50).on('value', (snapshot) => {
             const postsList = document.getElementById('postsList');
@@ -504,6 +525,7 @@
     }
 
     window.addEventListener('load', () => {
+        initializeFirebase();
         showScreen('loginScreen');
     });
 </script>
