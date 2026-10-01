@@ -3,128 +3,549 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>탄소중립 마을 가꾸기</title>
+    <title>탄소중립 마을 게시판</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f4f9f4;
-            margin: 0;
         }
+
         .container {
-            max-width: 420px;
-            margin: auto;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .screen {
             background: white;
-            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            display: none;
         }
+
+        .screen.active {
+            display: block;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         h1 {
-            color: #2e7d32;
-            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 28px;
         }
-        input {
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        textarea {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
-            box-sizing: border-box;
+            border: 2px solid #ddd;
             border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 16px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
         }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
         button {
             width: 100%;
-            padding: 15px;
-            background-color: #4caf50;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
             margin-top: 10px;
         }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
         button:active {
-            background-color: #388e3c;
+            transform: translateY(0);
         }
-        #result {
-            margin-top: 20px;
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 5px;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .switch-auth a {
+            color: #667eea;
+            cursor: pointer;
             font-weight: bold;
-            color: #333;
-            font-size: 16px;
-            line-height: 1.6;
+            text-decoration: none;
         }
-        .score-box {
-            margin-top: 20px;
-            background: #eef7ee;
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .user-info {
+            background: #e7f3ff;
             padding: 15px;
-            border-radius: 10px;
-            color: #1b5e20;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .user-info strong {
+            color: #667eea;
+        }
+
+        .post-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .post-author {
             font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .post-date {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .no-posts {
+            text-align: center;
+            color: #999;
+            padding: 30px 0;
+        }
+
+        .loading {
+            text-align: center;
+            color: #999;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            margin-top: 20px;
+        }
+
+        .btn-logout:hover {
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🌱 탄소중립 마을</h1>
-    <p>활동을 기록하고 포인트를 적립하세요!</p>
+    <!-- 로그인 화면 -->
+    <div id="loginScreen" class="screen active">
+        <h1>🌱 탄소중립 마을</h1>
+        <div class="error-message" id="loginError"></div>
+        
+        <div class="form-group">
+            <label for="loginEmail">아이디 (이메일)</label>
+            <input type="email" id="loginEmail" placeholder="예: student@school.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="loginPassword">비밀번호</label>
+            <input type="password" id="loginPassword" placeholder="6자 이상">
+        </div>
+        
+        <button onclick="login()">로그인</button>
+        
+        <div class="switch-auth">
+            계정이 없으신가요? <a onclick="switchToSignup()">회원가입</a>
+        </div>
+    </div>
 
-    <input type="text" id="userId" placeholder="학생 이름을 입력하세요">
+    <!-- 회원가입 화면 -->
+    <div id="signupScreen" class="screen">
+        <h1>🌱 탄소중립 마을</h1>
+        <div class="error-message" id="signupError"></div>
+        
+        <div class="form-group">
+            <label for="signupEmail">아이디 (이메일)</label>
+            <input type="email" id="signupEmail" placeholder="예: student@school.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="signupPassword">비밀번호</label>
+            <input type="password" id="signupPassword" placeholder="6자 이상">
+        </div>
+        
+        <div class="form-group">
+            <label for="signupPasswordConfirm">비밀번호 확인</label>
+            <input type="password" id="signupPasswordConfirm" placeholder="비밀번호를 다시 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label for="signupStudentId">학번</label>
+            <input type="text" id="signupStudentId" placeholder="예: 10329">
+        </div>
+        
+        <div class="form-group">
+            <label for="signupName">이름</label>
+            <input type="text" id="signupName" placeholder="예: 여류원">
+        </div>
+        
+        <button onclick="signup()">회원가입</button>
+        
+        <div class="switch-auth">
+            이미 계정이 있으신가요? <a onclick="switchToLogin()">로그인</a>
+        </div>
+    </div>
 
-    <button onclick="recordAction('recycle')">♻️ 분리배출 실천하기</button>
-    <button onclick="recordAction('bike')" style="background-color: #2196f3;">🚲 자전거 타기 실천</button>
+    <!-- 게시판 화면 -->
+    <div id="boardScreen" class="screen">
+        <h1>🌱 탄소중립 마을 게시판</h1>
+        
+        <div class="user-info">
+            <p>로그인: <strong id="userEmail">-</strong></p>
+            <p>학번/이름: <strong id="userInfo">-</strong></p>
+        </div>
 
-    <div id="result"></div>
-    <div id="scoreBox" class="score-box">현재 포인트: 0</div>
+        <h2>새 글 작성</h2>
+        <div class="error-message" id="boardError"></div>
+        <div class="success-message" id="boardSuccess"></div>
+        
+        <div class="form-group">
+            <label for="postTitle">제목</label>
+            <input type="text" id="postTitle" placeholder="글의 제목을 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label for="postContent">내용</label>
+            <textarea id="postContent" placeholder="글의 내용을 입력하세요"></textarea>
+        </div>
+        
+        <button onclick="createPost()">글 작성</button>
+
+        <h2 style="margin-top: 30px;">게시글 목록</h2>
+        <div id="postsList" class="loading">로딩 중...</div>
+
+        <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+
 <script>
-    const STORAGE_KEY = 'carbonVillageScores';
+    const firebaseConfig = {
+        apiKey: "AIzaSyC28wO7hJH1mAkINTWfcZZpVBJaJb_Ue-k",
+        authDomain: "carbonneutralvillage.firebaseapp.com",
+        databaseURL: "https://carbonneutralvillage-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "carbonneutralvillage",
+        storageBucket: "carbonneutralvillage.firebasestorage.app",
+        messagingSenderId: "519612037725",
+        appId: "1:519612037725:web:6777b8656fc74f57bcebb4",
+        measurementId: "G-V3RX16QW78"
+    };
 
-    function getUserData() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : {};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // UI 전환 함수
+    function showScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenName).classList.add('active');
     }
 
-    function saveUserData(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    function switchToSignup() {
+        document.getElementById('signupError').style.display = 'none';
+        showScreen('signupScreen');
     }
 
-    function getDisplayName() {
-        const name = document.getElementById('userId').value.trim();
-        return name || '학생';
+    function switchToLogin() {
+        document.getElementById('loginError').style.display = 'none';
+        showScreen('loginScreen');
     }
 
-    function recordAction(actionType) {
-        const userName = getDisplayName();
-        const data = getUserData();
+    // 에러 메시지 표시
+    function showError(elementId, message) {
+        const el = document.getElementById(elementId);
+        el.innerText = message;
+        el.style.display = 'block';
+    }
 
-        if (!data[userName]) {
-            data[userName] = {
-                recycle: 0,
-                bike: 0
-            };
+    function showSuccess(elementId, message) {
+        const el = document.getElementById(elementId);
+        el.innerText = message;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    // 회원가입
+    async function signup() {
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+        const studentId = document.getElementById('signupStudentId').value.trim();
+        const name = document.getElementById('signupName').value.trim();
+
+        if (!email || !password || !passwordConfirm || !studentId || !name) {
+            showError('signupError', '모든 항목을 입력해주세요');
+            return;
         }
 
-        const points = {
-            recycle: 10,
-            bike: 15
-        };
+        if (password !== passwordConfirm) {
+            showError('signupError', '비밀번호가 일치하지 않습니다');
+            return;
+        }
 
-        data[userName][actionType] += points[actionType];
+        if (password.length < 6) {
+            showError('signupError', '비밀번호는 6자 이상이어야 합니다');
+            return;
+        }
 
-        saveUserData(data);
+        try {
+            const result = await auth.createUserWithEmailAndPassword(email, password);
+            const uid = result.user.uid;
 
-        const total = data[userName].recycle + data[userName].bike;
+            // 사용자 정보 저장
+            await db.ref(`users/${uid}`).set({
+                email: email,
+                studentId: studentId,
+                name: name,
+                createdAt: new Date().toISOString()
+            });
 
-        document.getElementById('result').innerText =
-            `${userName}님, ${actionType === 'recycle' ? '분리배출' : '자전거 타기'} 활동을 기록했습니다!`;
-
-        document.getElementById('scoreBox').innerText =
-            `현재 포인트: ${total}점 (분리배출 ${data[userName].recycle}점, 자전거 ${data[userName].bike}점)`;
+            alert('회원가입이 완료되었습니다!');
+            switchToLogin();
+        } catch (error) {
+            showError('signupError', error.message);
+        }
     }
+
+    // 로그인
+    async function login() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            showError('loginError', '아이디와 비밀번호를 입력해주세요');
+            return;
+        }
+
+        try {
+            const result = await auth.signInWithEmailAndPassword(email, password);
+            const uid = result.user.uid;
+
+            // 사용자 정보 로드
+            const userRef = db.ref(`users/${uid}`);
+            userRef.on('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('userEmail').innerText = userData.email;
+                    document.getElementById('userInfo').innerText = `${userData.studentId} ${userData.name}`;
+                }
+            });
+
+            loadPosts();
+            showScreen('boardScreen');
+        } catch (error) {
+            showError('loginError', error.message);
+        }
+    }
+
+    // 로그아웃
+    function logout() {
+        auth.signOut().then(() => {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            showScreen('loginScreen');
+        });
+    }
+
+    // 글 작성
+    async function createPost() {
+        const user = auth.currentUser;
+        if (!user) {
+            showError('boardError', '로그인이 필요합니다');
+            return;
+        }
+
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+
+        if (!title || !content) {
+            showError('boardError', '제목과 내용을 입력해주세요');
+            return;
+        }
+
+        try {
+            // 사용자 정보 가져오기
+            const userRef = db.ref(`users/${user.uid}`);
+            userRef.once('value', (snapshot) => {
+                const userData = snapshot.val();
+
+                // 글 저장
+                const postRef = db.ref('posts').push();
+                postRef.set({
+                    uid: user.uid,
+                    studentId: userData.studentId,
+                    name: userData.name,
+                    title: title,
+                    content: content,
+                    timestamp: new Date().toISOString(),
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showSuccess('boardSuccess', '글이 작성되었습니다!');
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                loadPosts();
+            });
+        } catch (error) {
+            showError('boardError', error.message);
+        }
+    }
+
+    // 글 목록 로드
+    function loadPosts() {
+        const postsRef = db.ref('posts').orderByChild('createdAt');
+        postsRef.limitToLast(50).on('value', (snapshot) => {
+            const postsList = document.getElementById('postsList');
+            postsList.innerHTML = '';
+
+            if (!snapshot.exists()) {
+                postsList.innerHTML = '<div class="no-posts">아직 글이 없습니다</div>';
+                return;
+            }
+
+            const posts = [];
+            snapshot.forEach((childSnapshot) => {
+                posts.unshift(childSnapshot.val());
+            });
+
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="no-posts">아직 글이 없습니다</div>';
+            } else {
+                posts.forEach((post) => {
+                    const date = new Date(post.timestamp).toLocaleString('ko-KR');
+                    const postHtml = `
+                        <div class="post-item">
+                            <div class="post-header">
+                                <div class="post-author">${post.studentId} ${post.name}</div>
+                                <div class="post-date">${date}</div>
+                            </div>
+                            <div style="font-weight: bold; margin-bottom: 10px; color: #333;">${post.title}</div>
+                            <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                    postsList.innerHTML += postHtml;
+                });
+            }
+        });
+    }
+
+    // 초기 로드 시 현재 사용자 확인
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            const userRef = db.ref(`users/${user.uid}`);
+            userRef.on('value', (snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('userEmail').innerText = userData.email;
+                    document.getElementById('userInfo').innerText = `${userData.studentId} ${userData.name}`;
+                }
+            });
+            loadPosts();
+            showScreen('boardScreen');
+        } else {
+            showScreen('loginScreen');
+        }
+    });
 </script>
 
 </body>
