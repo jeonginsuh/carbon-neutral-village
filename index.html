@@ -310,8 +310,8 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -329,7 +329,7 @@
 
     function initializeFirebase() {
         if (!window.firebase) {
-            showError('loginError', 'Firebase 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            console.log("Firebase SDK not loaded yet");
             return false;
         }
 
@@ -338,6 +338,7 @@
         }
 
         db = firebase.database();
+        console.log("Firebase initialized successfully");
         return true;
     }
 
@@ -372,7 +373,10 @@
     }
 
     async function signup() {
-        if (!initializeFirebase()) return;
+        if (!initializeFirebase()) {
+            showError('signupError', 'Firebase를 초기화하고 있습니다. 잠시만 기다려주세요.');
+            return;
+        }
 
         const userId = document.getElementById('newUserId').value.trim();
         const studentId = document.getElementById('newUserStudentId').value.trim();
@@ -406,12 +410,15 @@
                 showScreen('boardScreen');
             });
         } catch (error) {
-            showError('signupError', error.message);
+            showError('signupError', '오류 발생: ' + error.message);
         }
     }
 
     async function login() {
-        if (!initializeFirebase()) return;
+        if (!initializeFirebase()) {
+            showError('loginError', 'Firebase를 초기화하고 있습니다. 잠시만 기다려주세요.');
+            return;
+        }
 
         const userId = document.getElementById('userId').value.trim();
 
@@ -438,18 +445,23 @@
                 showScreen('boardScreen');
             });
         } catch (error) {
-            showError('loginError', error.message);
+            showError('loginError', '오류 발생: ' + error.message);
         }
     }
 
     function logout() {
         currentUserId = null;
         document.getElementById('userId').value = '';
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postContent').value = '';
         showScreen('loginScreen');
     }
 
     async function createPost() {
-        if (!initializeFirebase()) return;
+        if (!initializeFirebase()) {
+            showError('boardError', 'Firebase를 초기화하고 있습니다. 잠시만 기다려주세요.');
+            return;
+        }
 
         if (!currentUserId) {
             showError('boardError', '로그인이 필요합니다');
@@ -468,6 +480,11 @@
             const userRef = db.ref(`users/${currentUserId}`);
             userRef.once('value', (snapshot) => {
                 const userData = snapshot.val();
+                if (!userData) {
+                    showError('boardError', '사용자 정보를 찾을 수 없습니다');
+                    return;
+                }
+
                 const postRef = db.ref('posts').push();
                 postRef.set({
                     userId: currentUserId,
@@ -485,12 +502,14 @@
                 loadPosts();
             });
         } catch (error) {
-            showError('boardError', error.message);
+            showError('boardError', '오류 발생: ' + error.message);
         }
     }
 
     function loadPosts() {
-        if (!initializeFirebase()) return;
+        if (!initializeFirebase()) {
+            return;
+        }
 
         const postsRef = db.ref('posts').orderByChild('createdAt');
         postsRef.limitToLast(50).on('value', (snapshot) => {
@@ -525,8 +544,10 @@
     }
 
     window.addEventListener('load', () => {
-        initializeFirebase();
-        showScreen('loginScreen');
+        setTimeout(() => {
+            initializeFirebase();
+            showScreen('loginScreen');
+        }, 500);
     });
 </script>
 
